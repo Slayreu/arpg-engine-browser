@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARPG Engine Browser</title>
+    <title>Diablo 4 Style ARPG</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -12,15 +13,16 @@
         }
         
         body {
-            font-family: 'Courier New', monospace;
-            background: #1a1a1a;
-            color: #ffffff;
+            font-family: 'Cinzel', serif;
+            background: #0a0a0a;
+            color: #d4af37;
             overflow: hidden;
+            cursor: crosshair;
         }
         
         #gameCanvas {
             display: block;
-            cursor: crosshair;
+            background: radial-gradient(ellipse at center, #1a1a1a 0%, #0a0a0a 100%);
         }
         
         #ui {
@@ -31,69 +33,348 @@
             height: 100%;
             pointer-events: none;
             z-index: 100;
+            font-size: 14px;
         }
         
         .ui-element {
             pointer-events: auto;
         }
         
-        #healthBar {
+        /* Minimap */
+        #minimap {
             position: absolute;
             top: 20px;
-            left: 20px;
+            right: 20px;
             width: 200px;
-            height: 20px;
-            background: rgba(0, 0, 0, 0.5);
-            border: 2px solid #666;
-            border-radius: 10px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(20, 20, 20, 0.9) 0%, rgba(0, 0, 0, 0.95) 100%);
+            border: 3px solid #d4af37;
+            border-radius: 50%;
+            box-shadow: 
+                inset 0 0 20px rgba(212, 175, 55, 0.3),
+                0 0 30px rgba(0, 0, 0, 0.8);
+        }
+        
+        #minimapContent {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
             overflow: hidden;
         }
         
-        #healthFill {
-            height: 100%;
-            background: linear-gradient(90deg, #ff0000, #ff6600);
-            width: 100%;
-            transition: width 0.3s ease;
+        .minimap-player {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 8px;
+            height: 8px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #fff;
         }
         
-        #inventory {
+        /* Bottom HUD */
+        #bottomHUD {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 120px;
+            background: linear-gradient(
+                to top,
+                rgba(0, 0, 0, 0.95) 0%,
+                rgba(20, 20, 20, 0.8) 50%,
+                transparent 100%
+            );
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Health Orb */
+        #healthOrb {
+            position: absolute;
+            bottom: 10px;
+            left: 60px;
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle at 30% 30%, #ff6b6b, #cc0000, #660000);
+            border-radius: 50%;
+            border: 3px solid #d4af37;
+            box-shadow: 
+                inset 0 0 20px rgba(255, 255, 255, 0.3),
+                0 0 30px rgba(204, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            cursor: pointer;
+        }
+        
+        /* Mana Orb */
+        #manaOrb {
+            position: absolute;
+            bottom: 10px;
+            right: 60px;
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle at 30% 30%, #4dabf7, #1864ab, #0b3d66);
+            border-radius: 50%;
+            border: 3px solid #d4af37;
+            box-shadow: 
+                inset 0 0 20px rgba(255, 255, 255, 0.3),
+                0 0 30px rgba(24, 100, 171, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            cursor: pointer;
+        }
+        
+        /* Action Bar */
+        #actionBar {
             position: absolute;
             bottom: 20px;
-            right: 20px;
-            width: 300px;
-            height: 200px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid #666;
-            border-radius: 5px;
-            padding: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            background: linear-gradient(
+                145deg,
+                rgba(212, 175, 55, 0.1) 0%,
+                rgba(0, 0, 0, 0.8) 50%,
+                rgba(212, 175, 55, 0.1) 100%
+            );
+            padding: 15px 20px;
+            border: 2px solid #d4af37;
+            border-radius: 15px;
+            box-shadow: 
+                inset 0 0 20px rgba(212, 175, 55, 0.2),
+                0 0 30px rgba(0, 0, 0, 0.8);
         }
         
-        #stats {
+        .skill-slot {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+            border: 2px solid #666;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .skill-slot:hover {
+            border-color: #d4af37;
+            box-shadow: 
+                0 0 15px rgba(212, 175, 55, 0.5),
+                inset 0 0 10px rgba(212, 175, 55, 0.1);
+        }
+        
+        .skill-slot.active {
+            border-color: #ffd700;
+            box-shadow: 
+                0 0 20px rgba(255, 215, 0, 0.7),
+                inset 0 0 15px rgba(255, 215, 0, 0.2);
+        }
+        
+        .skill-slot::after {
+            content: attr(data-key);
+            position: absolute;
+            bottom: -2px;
+            right: 2px;
+            font-size: 10px;
+            color: #999;
+            font-weight: bold;
+        }
+        
+        .skill-icon {
+            width: 32px;
+            height: 32px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        
+        /* Experience Bar */
+        #expBar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: rgba(0, 0, 0, 0.8);
+            border-top: 1px solid #d4af37;
+        }
+        
+        #expFill {
+            height: 100%;
+            background: linear-gradient(90deg, #ffd700, #ffed4e, #ffd700);
+            width: 0%;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+        }
+        
+        /* Character Info Panel */
+        #characterInfo {
             position: absolute;
             top: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid #666;
-            border-radius: 5px;
-            padding: 15px;
-            min-width: 150px;
-        }
-        
-        .stat-line {
-            margin-bottom: 5px;
-            font-size: 14px;
-        }
-        
-        #instructions {
-            position: absolute;
-            bottom: 20px;
             left: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid #666;
-            border-radius: 5px;
+            background: linear-gradient(145deg, rgba(20, 20, 20, 0.95), rgba(0, 0, 0, 0.95));
+            border: 2px solid #d4af37;
+            border-radius: 10px;
             padding: 15px;
+            min-width: 200px;
+            box-shadow: 
+                inset 0 0 20px rgba(212, 175, 55, 0.1),
+                0 0 30px rgba(0, 0, 0, 0.8);
+        }
+        
+        .character-stat {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        
+        .stat-label {
+            color: #d4af37;
+            font-weight: 600;
+        }
+        
+        .stat-value {
+            color: #fff;
+            font-weight: 400;
+        }
+        
+        /* Inventory Panel (Hidden by default) */
+        #inventoryPanel {
+            position: absolute;
+            top: 50%;
+            right: 50px;
+            transform: translateY(-50%);
+            width: 400px;
+            height: 500px;
+            background: linear-gradient(145deg, rgba(20, 20, 20, 0.95), rgba(0, 0, 0, 0.95));
+            border: 3px solid #d4af37;
+            border-radius: 15px;
+            padding: 20px;
+            display: none;
+            box-shadow: 
+                inset 0 0 30px rgba(212, 175, 55, 0.1),
+                0 0 50px rgba(0, 0, 0, 0.9);
+        }
+        
+        .inventory-header {
+            color: #d4af37;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+        
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 3px;
+            margin-top: 15px;
+        }
+        
+        .inventory-slot {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+            border: 1px solid #555;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .inventory-slot:hover {
+            border-color: #d4af37;
+            box-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
+        }
+        
+        .inventory-slot.drag-over {
+            border-color: #51cf66;
+            box-shadow: 0 0 12px rgba(81, 207, 102, 0.5);
+        }
+        
+        .inventory-item {
+            cursor: grab;
+            transition: all 0.2s ease;
+        }
+        
+        .inventory-item:hover {
+            transform: scale(1.05);
+            z-index: 10;
+        }
+        
+        .inventory-item:active {
+            cursor: grabbing;
+        }
+        
+        /* Tooltips */
+        .tooltip {
+            position: absolute;
+            background: linear-gradient(145deg, rgba(10, 10, 10, 0.98), rgba(0, 0, 0, 0.98));
+            border: 2px solid #d4af37;
+            border-radius: 8px;
+            padding: 12px;
+            max-width: 300px;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
             font-size: 12px;
             line-height: 1.4;
+        }
+        
+        /* Animations */
+        @keyframes orbPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .orb-pulse {
+            animation: orbPulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes skillCooldown {
+            0% { transform: scale(1) rotate(0deg); }
+            100% { transform: scale(0.9) rotate(360deg); }
+        }
+        
+        .skill-cooldown {
+            animation: skillCooldown 0.3s ease-out;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 1200px) {
+            #minimap {
+                width: 150px;
+                height: 150px;
+            }
+            
+            #actionBar {
+                gap: 6px;
+                padding: 12px 16px;
+            }
+            
+            .skill-slot {
+                width: 45px;
+                height: 45px;
+            }
         }
     </style>
 </head>
@@ -101,30 +382,87 @@
     <canvas id="gameCanvas"></canvas>
     
     <div id="ui">
-        <div id="healthBar" class="ui-element">
-            <div id="healthFill"></div>
+        <!-- Character Info Panel -->
+        <div id="characterInfo" class="ui-element">
+            <div class="character-stat">
+                <span class="stat-label">Level:</span>
+                <span class="stat-value" id="playerLevel">1</span>
+            </div>
+            <div class="character-stat">
+                <span class="stat-label">Class:</span>
+                <span class="stat-value" id="playerClass">Sorcerer</span>
+            </div>
+            <div class="character-stat">
+                <span class="stat-label">Position:</span>
+                <span class="stat-value" id="playerPos">0.0, 0.0</span>
+            </div>
+            <div class="character-stat">
+                <span class="stat-label">Health:</span>
+                <span class="stat-value" id="healthText">100/100</span>
+            </div>
+            <div class="character-stat">
+                <span class="stat-label">Mana:</span>
+                <span class="stat-value" id="manaText">50/50</span>
+            </div>
         </div>
         
-        <div id="stats" class="ui-element">
-            <div class="stat-line">Level: <span id="playerLevel">1</span></div>
-            <div class="stat-line">HP: <span id="playerHP">100</span>/<span id="playerMaxHP">100</span></div>
-            <div class="stat-line">XP: <span id="playerXP">0</span></div>
-            <div class="stat-line">Position: <span id="playerPos">0, 0</span></div>
+        <!-- Minimap -->
+        <div id="minimap" class="ui-element">
+            <div id="minimapContent">
+                <div class="minimap-player"></div>
+            </div>
         </div>
         
-        <div id="inventory" class="ui-element">
-            <h3>Inventory</h3>
-            <p>Click to move around the world!</p>
-            <p>WASD keys for camera control</p>
+        <!-- Bottom HUD -->
+        <div id="bottomHUD">
+            <!-- Health Orb -->
+            <div id="healthOrb" class="ui-element orb-pulse">
+                <span id="healthValue">100</span>
+            </div>
+            
+            <!-- Action Bar -->
+            <div id="actionBar" class="ui-element">
+                <div class="skill-slot" data-key="1" data-skill="fireball">
+                    <div class="skill-icon" style="background-color: #ff4444; border-radius: 50%;"></div>
+                </div>
+                <div class="skill-slot" data-key="2" data-skill="icebolt">
+                    <div class="skill-icon" style="background-color: #4dabf7; border-radius: 50%;"></div>
+                </div>
+                <div class="skill-slot" data-key="3" data-skill="lightning">
+                    <div class="skill-icon" style="background-color: #ffd43b; border-radius: 50%;"></div>
+                </div>
+                <div class="skill-slot" data-key="4" data-skill="teleport">
+                    <div class="skill-icon" style="background-color: #e599f7; border-radius: 50%;"></div>
+                </div>
+                <div class="skill-slot" data-key="Q" data-skill="heal">
+                    <div class="skill-icon" style="background-color: #51cf66; border-radius: 50%;"></div>
+                </div>
+                <div class="skill-slot" data-key="E" data-skill="mana-potion">
+                    <div class="skill-icon" style="background-color: #4dabf7; border-radius: 50%;"></div>
+                </div>
+            </div>
+            
+            <!-- Mana Orb -->
+            <div id="manaOrb" class="ui-element orb-pulse">
+                <span id="manaValue">50</span>
+            </div>
         </div>
         
-        <div id="instructions" class="ui-element">
-            <strong>ARPG Engine Controls:</strong><br>
-            • Click to move character<br>
-            • WASD - Camera movement<br>
-            • Mouse wheel - Zoom in/out<br>
-            • Right click - Context menu (planned)
+        <!-- Experience Bar -->
+        <div id="expBar" class="ui-element">
+            <div id="expFill"></div>
         </div>
+        
+        <!-- Inventory Panel (Hidden by default) -->
+        <div id="inventoryPanel" class="ui-element">
+            <div class="inventory-header">INVENTORY</div>
+            <div class="inventory-grid">
+                <!-- Inventory slots will be generated by JavaScript -->
+            </div>
+        </div>
+        
+        <!-- Tooltip -->
+        <div id="tooltip" class="tooltip"></div>
     </div>
     
     <script type="module" src="/src/main.ts"></script>
