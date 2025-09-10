@@ -11,7 +11,11 @@ export class Player {
     private level: number = 1;
     private health: number = 100;
     private maxHealth: number = 100;
+    private mana: number = 50;
+    private maxMana: number = 50;
     private experience: number = 0;
+    private expToNextLevel: number = 100;
+    private playerClass: string = 'Sorcerer';
 
     constructor() {
         this.position = new THREE.Vector3(0, 0, 0);
@@ -126,6 +130,9 @@ export class Player {
 
             this.mesh.position.copy(this.position);
         }
+
+        // Regenerate mana over time
+        this.regenerateMana(deltaTime);
     }
 
     public moveTo(targetPosition: THREE.Vector3): void {
@@ -155,12 +162,32 @@ export class Player {
         return this.maxHealth;
     }
 
+    public getMana(): number {
+        return this.mana;
+    }
+
+    public getMaxMana(): number {
+        return this.maxMana;
+    }
+
     public getExperience(): number {
         return this.experience;
     }
 
+    public getPlayerClass(): string {
+        return this.playerClass;
+    }
+
     public getHealthPercentage(): number {
         return (this.health / this.maxHealth) * 100;
+    }
+
+    public getManaPercentage(): number {
+        return (this.mana / this.maxMana) * 100;
+    }
+
+    public getExperiencePercentage(): number {
+        return (this.experience / this.expToNextLevel) * 100;
     }
 
     // Methods for gameplay
@@ -176,8 +203,7 @@ export class Player {
         this.experience += amount;
         
         // Simple level-up mechanism
-        const expNeededForNextLevel = this.level * 100;
-        if (this.experience >= expNeededForNextLevel) {
+        if (this.experience >= this.expToNextLevel) {
             this.levelUp();
         }
     }
@@ -185,8 +211,30 @@ export class Player {
     private levelUp(): void {
         this.level++;
         this.experience = 0;
+        this.expToNextLevel = this.level * 100; // Increase exp requirement
         this.maxHealth += 20;
+        this.maxMana += 10;
         this.health = this.maxHealth; // Full heal on level up
+        this.mana = this.maxMana; // Full mana on level up
         console.log(`Level up! Now level ${this.level}`);
+    }
+
+    // Mana management methods
+    public useMana(amount: number): boolean {
+        if (this.mana >= amount) {
+            this.mana = Math.max(0, this.mana - amount);
+            return true;
+        }
+        return false;
+    }
+
+    public restoreMana(amount: number): void {
+        this.mana = Math.min(this.maxMana, this.mana + amount);
+    }
+
+    public regenerateMana(deltaTime: number): void {
+        // Slow mana regeneration over time
+        const regenRate = 5; // mana per second
+        this.mana = Math.min(this.maxMana, this.mana + (regenRate * deltaTime));
     }
 }
