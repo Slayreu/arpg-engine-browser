@@ -5,40 +5,65 @@ export class UI {
 
     constructor() {
         this.initializeElements();
+        this.initializeInventoryGrid();
     }
 
     private initializeElements(): void {
         // Cache references to UI elements
         this.elements.healthFill = document.getElementById('healthFill')!;
+        this.elements.healthText = document.getElementById('healthText')!;
+        this.elements.manaFill = document.getElementById('manaFill')!;
+        this.elements.manaText = document.getElementById('manaText')!;
         this.elements.playerLevel = document.getElementById('playerLevel')!;
         this.elements.playerHP = document.getElementById('playerHP')!;
         this.elements.playerMaxHP = document.getElementById('playerMaxHP')!;
+        this.elements.playerMP = document.getElementById('playerMP')!;
+        this.elements.playerMaxMP = document.getElementById('playerMaxMP')!;
         this.elements.playerXP = document.getElementById('playerXP')!;
         this.elements.playerPos = document.getElementById('playerPos')!;
+        this.elements.inventoryGrid = document.getElementById('inventoryGrid')!;
+    }
+
+    private initializeInventoryGrid(): void {
+        // Create 8x6 inventory grid (48 slots)
+        for (let i = 0; i < 48; i++) {
+            const slot = document.createElement('div');
+            slot.className = 'inventory-slot';
+            slot.setAttribute('data-slot', i.toString());
+            this.elements.inventoryGrid.appendChild(slot);
+        }
     }
 
     public update(player: Player): void {
-        // Update health bar
+        // Update health orb
         const healthPercentage = player.getHealthPercentage();
-        this.elements.healthFill.style.width = `${healthPercentage}%`;
+        this.elements.healthFill.style.height = `${healthPercentage}%`;
+        this.elements.healthText.textContent = player.getHealth().toString();
+
+        // Update mana orb
+        const manaPercentage = player.getManaPercentage();
+        this.elements.manaFill.style.height = `${manaPercentage}%`;
+        this.elements.manaText.textContent = player.getMana().toString();
 
         // Update stats
         this.elements.playerLevel.textContent = player.getLevel().toString();
         this.elements.playerHP.textContent = player.getHealth().toString();
         this.elements.playerMaxHP.textContent = player.getMaxHealth().toString();
+        this.elements.playerMP.textContent = player.getMana().toString();
+        this.elements.playerMaxMP.textContent = player.getMaxMana().toString();
         this.elements.playerXP.textContent = player.getExperience().toString();
 
-        // Update position (rounded to 2 decimal places)
+        // Update position (rounded to 1 decimal place)
         const pos = player.getPosition();
         this.elements.playerPos.textContent = `${pos.x.toFixed(1)}, ${pos.z.toFixed(1)}`;
 
-        // Update health bar color based on health percentage
+        // Update health orb fill color based on health percentage
         if (healthPercentage > 60) {
-            this.elements.healthFill.style.background = 'linear-gradient(90deg, #32CD32, #90EE90)';
+            this.elements.healthFill.style.background = 'linear-gradient(0deg, #32CD32, #90EE90)';
         } else if (healthPercentage > 30) {
-            this.elements.healthFill.style.background = 'linear-gradient(90deg, #FFD700, #FFA500)';
+            this.elements.healthFill.style.background = 'linear-gradient(0deg, #FFD700, #FFA500)';
         } else {
-            this.elements.healthFill.style.background = 'linear-gradient(90deg, #FF0000, #FF6600)';
+            this.elements.healthFill.style.background = 'linear-gradient(0deg, #FF0000, #FF6600)';
         }
     }
 
