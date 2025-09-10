@@ -1,0 +1,21 @@
+{
+  "name": "arpg-engine-browser",
+  "version": "1.0.0",
+  "description": "An in-browser ARPG engine with 3D isometric view",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "keywords": ["arpg", "game", "3d", "isometric", "browser", "webgl"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@types/three": "^0.180.0",
+    "three": "^0.180.0",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.5"
+  }
+}
