@@ -1,4 +1,5 @@
 import { Player } from '../entities/Player';
+import { InventorySystem, Item } from '../systems/InventorySystem';
 import * as THREE from 'three';
 
 export class UI {
@@ -6,14 +7,17 @@ export class UI {
     private skillSlots: HTMLElement[] = [];
     private inventoryVisible: boolean = false;
     private player?: Player;
+    private inventorySystem: InventorySystem;
     
     // Callback for skill activation
     public onSkillActivated?: (skillName: string, position: THREE.Vector3) => void;
 
     constructor() {
+        this.inventorySystem = new InventorySystem();
         this.initializeElements();
         this.setupEventListeners();
         this.createInventoryGrid();
+        this.setupInventorySystem();
     }
 
     private initializeElements(): void {
@@ -212,18 +216,212 @@ export class UI {
     private createInventoryGrid(): void {
         const grid = document.querySelector('.inventory-grid')!;
         
+        // Clear existing slots
+        grid.innerHTML = '';
+        
         // Create 5 rows x 8 columns = 40 slots
         for (let i = 0; i < 40; i++) {
             const slot = document.createElement('div');
             slot.className = 'inventory-slot';
             slot.dataset.slotId = i.toString();
             
-            slot.addEventListener('mouseenter', () => {
-                // Future: Show item tooltip if slot has an item
+            // Add drag and drop functionality
+            slot.addEventListener('dragover', (event) => {
+                event.preventDefault();
+                slot.classList.add('drag-over');
+            });
+            
+            slot.addEventListener('dragleave', () => {
+                slot.classList.remove('drag-over');
+            });
+            
+            slot.addEventListener('drop', (event) => {
+                event.preventDefault();
+                slot.classList.remove('drag-over');
+                this.handleItemDrop(event, parseInt(slot.dataset.slotId!));
+            });
+            
+            slot.addEventListener('mouseenter', (event) => {
+                const slotData = this.inventorySystem.getSlot(i);
+                if (slotData && slotData.item) {
+                    this.showItemTooltip(event, slotData.item, slotData.quantity);
+                }
+            });
+            
+            slot.addEventListener('mouseleave', () => {
+                this.hideTooltip();
             });
             
             grid.appendChild(slot);
         }
+        
+        this.updateInventoryDisplay();
+    }
+
+    private setupInventorySystem(): void {
+        // Add some sample items for testing
+        const sampleItems = InventorySystem.createSampleItems();
+        sampleItems.forEach(item => {
+            this.inventorySystem.addItem(item, item.stackSize && item.stackSize > 1 ? 5 : 1);
+        });
+        
+        // Set up callback for inventory changes
+        this.inventorySystem.setInventoryChangedCallback(() => {
+            this.updateInventoryDisplay();
+        });
+    }
+
+    private updateInventoryDisplay(): void {
+        const slots = this.inventorySystem.getAllSlots();
+        const slotElements = document.querySelectorAll('.inventory-slot');
+        
+        slots.forEach((slotData, index) => {
+            const slotElement = slotElements[index] as HTMLElement;
+            if (!slotElement) return;
+            
+            // Clear slot
+            slotElement.innerHTML = '';
+            slotElement.className = 'inventory-slot';
+            
+            if (slotData.item) {
+                // Add item to slot
+                const itemElement = document.createElement('div');
+                itemElement.className = 'inventory-item';
+                itemElement.draggable = true;
+                itemElement.dataset.slotId = index.toString();
+                
+                // Set item appearance based on rarity
+                const rarityColors: { [key: string]: string } = {
+                    common: '#9ca3af',
+                    magic: '#3b82f6',
+                    rare: '#eab308',
+                    legendary: '#f97316',
+                    unique: '#8b5cf6'
+                };
+                
+                itemElement.style.cssText = `
+                    width: 100%;
+                    height: 100%;
+                    background: ${rarityColors[slotData.item.rarity] || '#9ca3af'};
+                    border: 2px solid ${rarityColors[slotData.item.rarity] || '#9ca3af'};
+                    border-radius: 4px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 10px;
+                    font-weight: bold;
+                    color: white;
+                    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+                    cursor: grab;
+                    position: relative;
+                `;
+                
+                // Add item icon or abbreviation
+                const iconText = this.getItemIcon(slotData.item);
+                itemElement.textContent = iconText;
+                
+                // Add quantity if stackable
+                if (slotData.quantity > 1) {
+                    const quantityElement = document.createElement('div');
+                    quantityElement.className = 'item-quantity';
+                    quantityElement.textContent = slotData.quantity.toString();
+                    quantityElement.style.cssText = `
+                        position: absolute;
+                        bottom: 2px;
+                        right: 2px;
+                        font-size: 8px;
+                        background: rgba(0,0,0,0.7);
+                        padding: 1px 3px;
+                        border-radius: 2px;
+                    `;
+                    itemElement.appendChild(quantityElement);
+                }
+                
+                // Add drag start event
+                itemElement.addEventListener('dragstart', (event) => {
+                    this.handleItemDragStart(event, index);
+                });
+                
+                slotElement.appendChild(itemElement);
+            }
+        });
+    }
+
+    private getItemIcon(item: Item): string {
+        const icons: { [key: string]: string } = {
+            'sword_001': '⚔️',
+            'health_potion': '❤️',
+            'mana_potion': '💙',
+            'leather_armor': '🛡️',
+            'magic_ring': '💍',
+            'fire_staff': '🔥'
+        };
+        
+        return icons[item.id] || item.name.substring(0, 2).toUpperCase();
+    }
+
+    private handleItemDragStart(event: DragEvent, slotId: number): void {
+        if (!event.dataTransfer) return;
+        
+        event.dataTransfer.setData('text/plain', slotId.toString());
+    }
+
+    private handleItemDrop(event: DragEvent, targetSlotId: number): void {
+        if (!event.dataTransfer) return;
+        
+        const sourceSlotId = parseInt(event.dataTransfer.getData('text/plain'));
+        if (sourceSlotId !== undefined && sourceSlotId !== targetSlotId) {
+            this.inventorySystem.moveItem(sourceSlotId, targetSlotId);
+        }
+    }
+
+    private showItemTooltip(event: MouseEvent, item: Item, quantity: number): void {
+        const tooltipContent = this.getItemTooltip(item, quantity);
+        
+        this.elements.tooltip.innerHTML = tooltipContent;
+        this.elements.tooltip.style.display = 'block';
+        
+        // Position tooltip
+        const rect = (event.target as HTMLElement).getBoundingClientRect();
+        this.elements.tooltip.style.left = `${rect.left + rect.width + 10}px`;
+        this.elements.tooltip.style.top = `${rect.top}px`;
+        this.elements.tooltip.style.transform = 'none';
+    }
+
+    private getItemTooltip(item: Item, quantity: number): string {
+        const rarityColors: { [key: string]: string } = {
+            common: '#9ca3af',
+            magic: '#3b82f6',
+            rare: '#eab308',
+            legendary: '#f97316',
+            unique: '#8b5cf6'
+        };
+        
+        const color = rarityColors[item.rarity] || '#9ca3af';
+        
+        let tooltip = `
+            <div style="color: ${color}; font-weight: bold; font-size: 14px;">
+                ${item.name}${quantity > 1 ? ` (${quantity})` : ''}
+            </div>
+            <div style="color: #999; font-size: 11px; margin-top: 2px;">
+                ${item.type} • Level ${item.level} • ${item.rarity}
+            </div>
+            <div style="margin-top: 8px; color: #ccc; font-size: 12px;">
+                ${item.description}
+            </div>
+        `;
+        
+        if (Object.keys(item.stats).length > 0) {
+            tooltip += '<div style="margin-top: 8px; color: #88f; font-size: 11px;">';
+            Object.entries(item.stats).forEach(([stat, value]) => {
+                tooltip += `<div>+${value} ${stat.replace('_', ' ')}</div>`;
+            });
+            tooltip += '</div>';
+        }
+        
+        tooltip += `<div style="margin-top: 8px; color: #ffd700; font-size: 11px;">Value: ${item.value} gold</div>`;
+        
+        return tooltip;
     }
 
     public update(player: Player): void {

@@ -306,6 +306,25 @@
             box-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
         }
         
+        .inventory-slot.drag-over {
+            border-color: #51cf66;
+            box-shadow: 0 0 12px rgba(81, 207, 102, 0.5);
+        }
+        
+        .inventory-item {
+            cursor: grab;
+            transition: all 0.2s ease;
+        }
+        
+        .inventory-item:hover {
+            transform: scale(1.05);
+            z-index: 10;
+        }
+        
+        .inventory-item:active {
+            cursor: grabbing;
+        }
+        
         /* Tooltips */
         .tooltip {
             position: absolute;
