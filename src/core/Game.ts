@@ -3,6 +3,7 @@ import { Camera } from './Camera';
 import { World } from './World';
 import { Player } from '../entities/Player';
 import { InputManager } from '../systems/InputManager';
+import { CombatSystem } from '../systems/CombatSystem';
 import { UI } from '../ui/UI';
 
 export class Game {
@@ -13,6 +14,7 @@ export class Game {
     private world: World;
     private player: Player;
     private inputManager: InputManager;
+    private combatSystem: CombatSystem;
     private ui: UI;
     private clock: THREE.Clock;
     private isRunning: boolean = false;
@@ -38,6 +40,7 @@ export class Game {
         this.world = new World();
         this.player = new Player();
         this.inputManager = new InputManager(this.canvas);
+        this.combatSystem = new CombatSystem();
         this.ui = new UI();
     }
 
@@ -63,6 +66,9 @@ export class Game {
         
         // Initialize player
         this.player.init(this.scene);
+        
+        // Initialize combat system
+        this.combatSystem.init(this.scene);
         
         // Set up isometric camera position
         this.camera.setIsometricView();
@@ -153,8 +159,11 @@ export class Game {
         // Update player
         this.player.update(deltaTime);
         
+        // Update combat system
+        this.combatSystem.update(deltaTime, this.player);
+        
         // Update UI
-        this.ui.update(this.player);
+        this.ui.update(this.player, this.combatSystem.getEnemyCount());
         
         // Update input
         this.inputManager.update();

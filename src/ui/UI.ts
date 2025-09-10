@@ -15,9 +15,10 @@ export class UI {
         this.elements.playerMaxHP = document.getElementById('playerMaxHP')!;
         this.elements.playerXP = document.getElementById('playerXP')!;
         this.elements.playerPos = document.getElementById('playerPos')!;
+        this.elements.enemyCount = document.getElementById('enemyCount')!;
     }
 
-    public update(player: Player): void {
+    public update(player: Player, enemyCount?: number): void {
         // Update health bar
         const healthPercentage = player.getHealthPercentage();
         this.elements.healthFill.style.width = `${healthPercentage}%`;
@@ -31,6 +32,11 @@ export class UI {
         // Update position (rounded to 2 decimal places)
         const pos = player.getPosition();
         this.elements.playerPos.textContent = `${pos.x.toFixed(1)}, ${pos.z.toFixed(1)}`;
+
+        // Update enemy count
+        if (enemyCount !== undefined) {
+            this.elements.enemyCount.textContent = enemyCount.toString();
+        }
 
         // Update health bar color based on health percentage
         if (healthPercentage > 60) {

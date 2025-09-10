@@ -12,6 +12,7 @@ export class Player {
     private health: number = 100;
     private maxHealth: number = 100;
     private experience: number = 0;
+    private lastAttackTime: number = 0;
 
     constructor() {
         this.position = new THREE.Vector3(0, 0, 0);
@@ -188,5 +189,13 @@ export class Player {
         this.maxHealth += 20;
         this.health = this.maxHealth; // Full heal on level up
         console.log(`Level up! Now level ${this.level}`);
+    }
+
+    public getLastAttackTime(): number {
+        return this.lastAttackTime;
+    }
+
+    public setLastAttackTime(time: number): void {
+        this.lastAttackTime = time;
     }
 }
