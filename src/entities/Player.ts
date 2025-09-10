@@ -11,6 +11,8 @@ export class Player {
     private level: number = 1;
     private health: number = 100;
     private maxHealth: number = 100;
+    private mana: number = 50;
+    private maxMana: number = 50;
     private experience: number = 0;
 
     constructor() {
@@ -155,12 +157,24 @@ export class Player {
         return this.maxHealth;
     }
 
+    public getMana(): number {
+        return this.mana;
+    }
+
+    public getMaxMana(): number {
+        return this.maxMana;
+    }
+
     public getExperience(): number {
         return this.experience;
     }
 
     public getHealthPercentage(): number {
         return (this.health / this.maxHealth) * 100;
+    }
+
+    public getManaPercentage(): number {
+        return (this.mana / this.maxMana) * 100;
     }
 
     // Methods for gameplay
@@ -170,6 +184,18 @@ export class Player {
 
     public heal(amount: number): void {
         this.health = Math.min(this.maxHealth, this.health + amount);
+    }
+
+    public consumeMana(amount: number): boolean {
+        if (this.mana >= amount) {
+            this.mana = Math.max(0, this.mana - amount);
+            return true;
+        }
+        return false;
+    }
+
+    public restoreMana(amount: number): void {
+        this.mana = Math.min(this.maxMana, this.mana + amount);
     }
 
     public gainExperience(amount: number): void {
@@ -186,7 +212,9 @@ export class Player {
         this.level++;
         this.experience = 0;
         this.maxHealth += 20;
+        this.maxMana += 10;
         this.health = this.maxHealth; // Full heal on level up
+        this.mana = this.maxMana; // Full mana restore on level up
         console.log(`Level up! Now level ${this.level}`);
     }
 }

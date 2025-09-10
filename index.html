@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ARPG Engine Browser</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&display=swap');
+        
         * {
             margin: 0;
             padding: 0;
@@ -12,15 +14,15 @@
         }
         
         body {
-            font-family: 'Courier New', monospace;
-            background: #1a1a1a;
-            color: #ffffff;
+            font-family: 'Cinzel', 'Times New Roman', serif;
+            background: linear-gradient(45deg, #2c1810, #1a0f08);
+            color: #d4af37;
             overflow: hidden;
         }
         
         #gameCanvas {
             display: block;
-            cursor: crosshair;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23d4af37" stroke-width="2"><polygon points="8,1 16,6 16,18 8,23 0,18 0,6"/></svg>') 12 12, crosshair;
         }
         
         #ui {
@@ -37,63 +39,245 @@
             pointer-events: auto;
         }
         
-        #healthBar {
+        /* Health and Mana Orbs */
+        .orb-container {
             position: absolute;
-            top: 20px;
+            bottom: 20px;
+            width: 80px;
+            height: 80px;
+        }
+        
+        #healthOrb {
             left: 20px;
-            width: 200px;
-            height: 20px;
-            background: rgba(0, 0, 0, 0.5);
-            border: 2px solid #666;
-            border-radius: 10px;
+        }
+        
+        #manaOrb {
+            right: 20px;
+        }
+        
+        .orb {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 4px solid #8b4513;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3), transparent 50%), 
+                        conic-gradient(from 0deg, #8b0000, #dc143c, #8b0000);
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5), 0 0 20px rgba(139, 20, 20, 0.5);
+            animation: orbPulse 3s ease-in-out infinite;
+        }
+        
+        @keyframes orbPulse {
+            0%, 100% { box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5), 0 0 20px rgba(139, 20, 20, 0.5); }
+            50% { box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5), 0 0 30px rgba(139, 20, 20, 0.8); }
+        }
+        
+        @keyframes manaPulse {
+            0%, 100% { box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5), 0 0 20px rgba(65, 105, 225, 0.5); }
+            50% { box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5), 0 0 30px rgba(65, 105, 225, 0.8); }
+        }
+        
+        .orb.mana {
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3), transparent 50%), 
+                        conic-gradient(from 0deg, #000080, #4169e1, #000080);
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5), 0 0 20px rgba(65, 105, 225, 0.5);
+            animation: manaPulse 4s ease-in-out infinite;
+        }
+        
+        .orb-fill {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            transition: height 0.3s ease;
             overflow: hidden;
         }
         
-        #healthFill {
-            height: 100%;
-            background: linear-gradient(90deg, #ff0000, #ff6600);
-            width: 100%;
-            transition: width 0.3s ease;
+        .orb-fill.health {
+            background: linear-gradient(0deg, #ff0000, #ff6600);
+        }
+        
+        .orb-fill.mana {
+            background: linear-gradient(0deg, #0000ff, #4169e1);
+        }
+        
+        .orb-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            z-index: 10;
+        }
+        
+        .stat-line {
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #d4af37;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
         }
         
         #inventory {
             position: absolute;
-            bottom: 20px;
+            top: 120px;
             right: 20px;
-            width: 300px;
-            height: 200px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid #666;
-            border-radius: 5px;
-            padding: 10px;
+            width: 320px;
+            height: 240px;
+            background: linear-gradient(135deg, rgba(44, 24, 16, 0.95), rgba(26, 15, 8, 0.95));
+            border: 3px solid #d4af37;
+            padding: 15px;
+            box-shadow: inset 0 0 10px rgba(212, 175, 55, 0.3), 0 0 15px rgba(0, 0, 0, 0.8);
+            position: relative;
+        }
+        
+        #inventory::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: -6px;
+            right: -6px;
+            bottom: -6px;
+            background: linear-gradient(45deg, #d4af37, #b8860b, #d4af37);
+            z-index: -1;
+            border-radius: 3px;
+        }
+        
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(6, 1fr);
+            gap: 2px;
+            height: calc(100% - 30px);
+            margin-top: 10px;
+        }
+        
+        .inventory-slot {
+            background: linear-gradient(135deg, #3c2c1c, #2c1c0c);
+            border: 1px solid #8b4513;
+            aspect-ratio: 1;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.5);
+        }
+        
+        .inventory-slot:hover {
+            border-color: #d4af37;
+            box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.5), 0 0 5px rgba(212, 175, 55, 0.5);
         }
         
         #stats {
             position: absolute;
             top: 20px;
             right: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid #666;
-            border-radius: 5px;
+            background: linear-gradient(135deg, rgba(44, 24, 16, 0.95), rgba(26, 15, 8, 0.95));
+            border: 3px solid #d4af37;
+            border-radius: 0;
             padding: 15px;
-            min-width: 150px;
+            min-width: 180px;
+            box-shadow: inset 0 0 10px rgba(212, 175, 55, 0.3), 0 0 15px rgba(0, 0, 0, 0.8);
+            position: relative;
         }
         
-        .stat-line {
-            margin-bottom: 5px;
-            font-size: 14px;
+        #stats::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: -6px;
+            right: -6px;
+            bottom: -6px;
+            background: linear-gradient(45deg, #d4af37, #b8860b, #d4af37);
+            z-index: -1;
+            border-radius: 3px;
+        }
+        
+        /* Skill Hotbar */
+        #skillBar {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 5px;
+            background: linear-gradient(135deg, rgba(44, 24, 16, 0.95), rgba(26, 15, 8, 0.95));
+            border: 3px solid #d4af37;
+            padding: 10px;
+            box-shadow: inset 0 0 10px rgba(212, 175, 55, 0.3), 0 0 15px rgba(0, 0, 0, 0.8);
+            position: relative;
+        }
+        
+        #skillBar::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: -6px;
+            right: -6px;
+            bottom: -6px;
+            background: linear-gradient(45deg, #d4af37, #b8860b, #d4af37);
+            z-index: -1;
+            border-radius: 3px;
+        }
+        
+        .skill-slot {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #3c2c1c, #2c1c0c);
+            border: 2px solid #8b4513;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: #d4af37;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+        
+        .skill-slot:hover {
+            border-color: #d4af37;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5), 0 0 10px rgba(212, 175, 55, 0.5);
+            transform: scale(1.05);
+            background: linear-gradient(135deg, #4c3c2c, #3c2c1c);
+        }
+        
+        .skill-slot:active {
+            transform: scale(0.95);
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
         }
         
         #instructions {
             position: absolute;
-            bottom: 20px;
+            bottom: 120px;
             left: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid #666;
-            border-radius: 5px;
+            background: linear-gradient(135deg, rgba(44, 24, 16, 0.95), rgba(26, 15, 8, 0.95));
+            border: 3px solid #d4af37;
             padding: 15px;
             font-size: 12px;
-            line-height: 1.4;
+            line-height: 1.5;
+            color: #d4af37;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            box-shadow: inset 0 0 10px rgba(212, 175, 55, 0.3), 0 0 15px rgba(0, 0, 0, 0.8);
+            max-width: 250px;
+            position: relative;
+        }
+        
+        #instructions::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: -6px;
+            right: -6px;
+            bottom: -6px;
+            background: linear-gradient(45deg, #d4af37, #b8860b, #d4af37);
+            z-index: -1;
+            border-radius: 3px;
         }
     </style>
 </head>
@@ -101,21 +285,45 @@
     <canvas id="gameCanvas"></canvas>
     
     <div id="ui">
-        <div id="healthBar" class="ui-element">
-            <div id="healthFill"></div>
+        <!-- Health Orb -->
+        <div id="healthOrb" class="orb-container ui-element">
+            <div class="orb">
+                <div id="healthFill" class="orb-fill health"></div>
+                <div class="orb-text" id="healthText">100</div>
+            </div>
+        </div>
+        
+        <!-- Mana Orb -->
+        <div id="manaOrb" class="orb-container ui-element">
+            <div class="orb mana">
+                <div id="manaFill" class="orb-fill mana"></div>
+                <div class="orb-text" id="manaText">50</div>
+            </div>
+        </div>
+        
+        <!-- Skill Bar -->
+        <div id="skillBar" class="ui-element">
+            <div class="skill-slot" title="Skill 1 (Q)">Q</div>
+            <div class="skill-slot" title="Skill 2 (W)">W</div>
+            <div class="skill-slot" title="Skill 3 (E)">E</div>
+            <div class="skill-slot" title="Skill 4 (R)">R</div>
+            <div class="skill-slot" title="Skill 5 (T)">T</div>
+            <div class="skill-slot" title="Skill 6 (Y)">Y</div>
         </div>
         
         <div id="stats" class="ui-element">
             <div class="stat-line">Level: <span id="playerLevel">1</span></div>
             <div class="stat-line">HP: <span id="playerHP">100</span>/<span id="playerMaxHP">100</span></div>
+            <div class="stat-line">MP: <span id="playerMP">50</span>/<span id="playerMaxMP">50</span></div>
             <div class="stat-line">XP: <span id="playerXP">0</span></div>
             <div class="stat-line">Position: <span id="playerPos">0, 0</span></div>
         </div>
         
         <div id="inventory" class="ui-element">
-            <h3>Inventory</h3>
-            <p>Click to move around the world!</p>
-            <p>WASD keys for camera control</p>
+            <h3 style="color: #d4af37; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8); margin-bottom: 5px;">Inventory</h3>
+            <div class="inventory-grid" id="inventoryGrid">
+                <!-- Inventory slots will be generated by JavaScript -->
+            </div>
         </div>
         
         <div id="instructions" class="ui-element">
@@ -123,7 +331,7 @@
             • Click to move character<br>
             • WASD - Camera movement<br>
             • Mouse wheel - Zoom in/out<br>
-            • Right click - Context menu (planned)
+            • Q,W,E,R,T,Y - Skills (WIP)
         </div>
     </div>
     
