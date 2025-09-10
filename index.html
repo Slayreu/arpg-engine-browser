@@ -65,12 +65,24 @@
             position: relative;
             overflow: hidden;
             box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5), 0 0 20px rgba(139, 20, 20, 0.5);
+            animation: orbPulse 3s ease-in-out infinite;
+        }
+        
+        @keyframes orbPulse {
+            0%, 100% { box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5), 0 0 20px rgba(139, 20, 20, 0.5); }
+            50% { box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5), 0 0 30px rgba(139, 20, 20, 0.8); }
+        }
+        
+        @keyframes manaPulse {
+            0%, 100% { box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5), 0 0 20px rgba(65, 105, 225, 0.5); }
+            50% { box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5), 0 0 30px rgba(65, 105, 225, 0.8); }
         }
         
         .orb.mana {
             background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3), transparent 50%), 
                         conic-gradient(from 0deg, #000080, #4169e1, #000080);
             box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5), 0 0 20px rgba(65, 105, 225, 0.5);
+            animation: manaPulse 4s ease-in-out infinite;
         }
         
         .orb-fill {
@@ -121,6 +133,19 @@
             border: 3px solid #d4af37;
             padding: 15px;
             box-shadow: inset 0 0 10px rgba(212, 175, 55, 0.3), 0 0 15px rgba(0, 0, 0, 0.8);
+            position: relative;
+        }
+        
+        #inventory::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: -6px;
+            right: -6px;
+            bottom: -6px;
+            background: linear-gradient(45deg, #d4af37, #b8860b, #d4af37);
+            z-index: -1;
+            border-radius: 3px;
         }
         
         .inventory-grid {
@@ -156,6 +181,19 @@
             padding: 15px;
             min-width: 180px;
             box-shadow: inset 0 0 10px rgba(212, 175, 55, 0.3), 0 0 15px rgba(0, 0, 0, 0.8);
+            position: relative;
+        }
+        
+        #stats::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: -6px;
+            right: -6px;
+            bottom: -6px;
+            background: linear-gradient(45deg, #d4af37, #b8860b, #d4af37);
+            z-index: -1;
+            border-radius: 3px;
         }
         
         /* Skill Hotbar */
@@ -170,6 +208,19 @@
             border: 3px solid #d4af37;
             padding: 10px;
             box-shadow: inset 0 0 10px rgba(212, 175, 55, 0.3), 0 0 15px rgba(0, 0, 0, 0.8);
+            position: relative;
+        }
+        
+        #skillBar::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: -6px;
+            right: -6px;
+            bottom: -6px;
+            background: linear-gradient(45deg, #d4af37, #b8860b, #d4af37);
+            z-index: -1;
+            border-radius: 3px;
         }
         
         .skill-slot {
@@ -186,11 +237,19 @@
             cursor: pointer;
             transition: all 0.2s ease;
             box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+            position: relative;
         }
         
         .skill-slot:hover {
             border-color: #d4af37;
             box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5), 0 0 10px rgba(212, 175, 55, 0.5);
+            transform: scale(1.05);
+            background: linear-gradient(135deg, #4c3c2c, #3c2c1c);
+        }
+        
+        .skill-slot:active {
+            transform: scale(0.95);
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
         }
         
         #instructions {
@@ -206,6 +265,19 @@
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
             box-shadow: inset 0 0 10px rgba(212, 175, 55, 0.3), 0 0 15px rgba(0, 0, 0, 0.8);
             max-width: 250px;
+            position: relative;
+        }
+        
+        #instructions::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: -6px;
+            right: -6px;
+            bottom: -6px;
+            background: linear-gradient(45deg, #d4af37, #b8860b, #d4af37);
+            z-index: -1;
+            border-radius: 3px;
         }
     </style>
 </head>
