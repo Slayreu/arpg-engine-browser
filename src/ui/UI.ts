@@ -1,9 +1,14 @@
 import { Player } from '../entities/Player';
+import * as THREE from 'three';
 
 export class UI {
     private elements: { [key: string]: HTMLElement } = {};
     private skillSlots: HTMLElement[] = [];
     private inventoryVisible: boolean = false;
+    private player?: Player;
+    
+    // Callback for skill activation
+    public onSkillActivated?: (skillName: string, position: THREE.Vector3) => void;
 
     constructor() {
         this.initializeElements();
@@ -95,6 +100,12 @@ export class UI {
 
         // Show skill activation message
         this.showMessage(`${this.formatSkillName(skillName)} activated!`, 1200);
+        
+        // Trigger particle effect callback
+        if (this.onSkillActivated && this.player) {
+            const playerPos = this.player.getPosition();
+            this.onSkillActivated(skillName, playerPos);
+        }
         
         console.log(`Skill activated: ${skillName}`);
     }
@@ -216,6 +227,9 @@ export class UI {
     }
 
     public update(player: Player): void {
+        // Cache player reference for skill effects
+        this.player = player;
+        
         // Update character stats
         this.elements.playerLevel.textContent = player.getLevel().toString();
         this.elements.healthText.textContent = `${player.getHealth()}/${player.getMaxHealth()}`;

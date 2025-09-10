@@ -3,6 +3,7 @@ import { Camera } from './Camera';
 import { World } from './World';
 import { Player } from '../entities/Player';
 import { InputManager } from '../systems/InputManager';
+import { ParticleSystem } from '../systems/ParticleSystem';
 import { UI } from '../ui/UI';
 
 export class Game {
@@ -14,6 +15,7 @@ export class Game {
     private player: Player;
     private inputManager: InputManager;
     private ui: UI;
+    private particleSystem: ParticleSystem;
     private clock: THREE.Clock;
     private isRunning: boolean = false;
 
@@ -24,11 +26,15 @@ export class Game {
         // Initialize Three.js renderer
         this.renderer = new THREE.WebGLRenderer({ 
             canvas: this.canvas, 
-            antialias: true 
+            antialias: true,
+            powerPreference: "high-performance"
         });
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        this.renderer.setClearColor(0x87CEEB, 1); // Sky blue background
+        this.renderer.setClearColor(0x0a0a1a, 1); // Dark blue-black sky
+        this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+        this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        this.renderer.toneMappingExposure = 1.2;
         
         // Initialize scene
         this.scene = new THREE.Scene();
@@ -38,7 +44,13 @@ export class Game {
         this.world = new World();
         this.player = new Player();
         this.inputManager = new InputManager(this.canvas);
+        this.particleSystem = new ParticleSystem(this.scene);
         this.ui = new UI();
+        
+        // Set up UI callbacks for particle effects
+        this.ui.onSkillActivated = (skillName: string, position: THREE.Vector3) => {
+            this.handleSkillEffect(skillName, position);
+        };
     }
 
     public init(): void {
@@ -150,8 +162,14 @@ export class Game {
     }
 
     private update(deltaTime: number): void {
+        // Update world (lighting animations, etc.)
+        this.world.update(deltaTime);
+        
         // Update player
         this.player.update(deltaTime);
+        
+        // Update particle system
+        this.particleSystem.update(deltaTime);
         
         // Update UI
         this.ui.update(this.player);
@@ -162,5 +180,32 @@ export class Game {
 
     private render(): void {
         this.renderer.render(this.scene, this.camera.getCamera());
+    }
+
+    private handleSkillEffect(skillName: string, _position: THREE.Vector3): void {
+        // Get player position for particle effects
+        const playerPos = this.player.getPosition();
+        playerPos.y += 1; // Raise particles above player
+        
+        switch (skillName) {
+            case 'fireball':
+                this.particleSystem.createFireball(playerPos);
+                break;
+            case 'icebolt':
+                this.particleSystem.createMagicAura(playerPos, 0x4dabf7, 12);
+                break;
+            case 'lightning':
+                this.particleSystem.createLightning(playerPos);
+                break;
+            case 'teleport':
+                this.particleSystem.createMagicAura(playerPos, 0xe599f7, 15);
+                break;
+            case 'heal':
+                this.particleSystem.createHealingEffect(playerPos);
+                break;
+            case 'mana-potion':
+                this.particleSystem.createMagicAura(playerPos, 0x4dabf7, 8);
+                break;
+        }
     }
 }
